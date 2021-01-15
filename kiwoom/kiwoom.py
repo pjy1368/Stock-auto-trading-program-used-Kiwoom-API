@@ -6,7 +6,7 @@ from config.errCode import *
 class Kiwoom(QAxWidget):
     def __init__(self):
         super().__init__()
-        self.login_event_loop = QEventLoop() # 로그인 담당 이벤트 루프
+        self.login_event_loop = QEventLoop()  # 로그인 담당 이벤트 루프
 
         self.create_kiwoom_instance()
         self.login()
