@@ -1,3 +1,4 @@
+import sys
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
 from config.errCode import *
@@ -8,8 +9,13 @@ class Kiwoom(QAxWidget):
         super().__init__()
         self.login_event_loop = QEventLoop()  # 로그인 담당 이벤트 루프
 
+        # 계좌 관련 변수
+        self.account_number = None
+
+        # 초기 작업
         self.create_kiwoom_instance()
         self.login()
+        self.get_account_info()
 
     # COM 오브젝트 생성.
     def create_kiwoom_instance(self):
@@ -23,7 +29,14 @@ class Kiwoom(QAxWidget):
 
     def login_slot(self, err_code):
         if err_code == 0:
-            print("로그인 성공")
+            print("로그인에 성공하였습니다.")
         else:
-            print("로그인 실패 - 에러 내용 :", errors(err_code)[1])
+            print("로그인에 실패하였습니다.")
+            print("에러 내용 :", errors(err_code)[1])
         self.login_event_loop.exit()
+
+    def get_account_info(self):
+        account_list = self.dynamicCall("GetLoginInfo(QString)", "ACCLIST")
+        account_number = account_list.split(';')[0]
+        self.account_number = account_number
+        print(self.account_number)
