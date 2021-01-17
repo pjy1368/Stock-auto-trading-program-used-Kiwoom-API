@@ -35,7 +35,7 @@ class Kiwoom(QAxWidget):
         if err_code == 0:
             print("로그인에 성공하였습니다.")
         else:
-            if err_code == -106: # 사용자가 강제로 키움api 프로그램을 종료하였을 경우
+            if err_code == -106:  # 사용자가 강제로 키움api 프로그램을 종료하였을 경우
                 os.system('cls')
                 print(errors(err_code)[1])
                 sys.exit(0)
@@ -59,7 +59,7 @@ class Kiwoom(QAxWidget):
             print("Q. 프로그램 종료")
             sel = input("=> ")
 
-            if sel == "Q" or sel == 'q':
+            if sel == "Q" or sel == "q":
                 sys.exit(0)
 
             if sel == "1":
