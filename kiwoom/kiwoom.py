@@ -68,6 +68,7 @@ class Kiwoom(QAxWidget):
                 self.print_my_info()
 
     def print_login_connect_state(self):
+        os.system('cls')
         isLogin = self.dynamicCall("GetConnectState()")
         if isLogin == 1:
             print("\n현재 계정은 로그인 상태입니다.\n")
@@ -76,6 +77,7 @@ class Kiwoom(QAxWidget):
         input()
 
     def print_my_info(self):
+        os.system('cls')
         user_name = self.dynamicCall("GetLoginInfo(QString)", "USER_NAME")
         user_id = self.dynamicCall("GetLoginInfo(QString)", "USER_ID")
         account_count = self.dynamicCall(
