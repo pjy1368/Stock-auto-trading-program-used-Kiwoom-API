@@ -9,15 +9,26 @@ class Kiwoom(QAxWidget):
     def __init__(self):
         super().__init__()
         self.login_event_loop = QEventLoop()  # 로그인 담당 이벤트 루프
+        self.get_detail_account_loop = QEventLoop()  # 상세 계좌 정보 얻어오기 담당 이벤트 루프
 
         # 계좌 관련 변수
         self.account_number = None
+        self.deposit = 0
+        self.use_money = 0  # 예수금 중에서 한 종목에 최대로 투자할 금액.
+        self.use_money_cnt = 5  # 최대 몇 종목에 분산 투자 할 것인가?
+        self.use_money_percent = 0.8
+        self.withdraw_deposit = 0
+
+        # 화면 번호
+        self.screen_my_account = "1000"
 
         # 초기 작업
         self.create_kiwoom_instance()
+        self.event_collection()  # 이벤트와 슬롯을 메모리에 먼저 생성.
         self.login()
         input()
-        self.get_account_info()
+        self.get_account_info()  # 계좌 번호만 얻어오기
+        self.get_detail_account_info()  # 상세 계좌 정보 얻어오기
 
         self.menu()
 
@@ -26,8 +37,11 @@ class Kiwoom(QAxWidget):
         # 레지스트리에 저장된 키움 openAPI 모듈 불러오기
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1")
 
+    def event_collection(self):
+        self.OnEventConnect.connect(self.login_slot)  # 로그인 관련 이벤트
+        self.OnReceiveTrData.connect(self.tr_slot)  # 트랜잭션 요청 관련 이벤트
+
     def login(self):
-        self.OnEventConnect.connect(self.login_slot)  # 이벤트와 슬롯을 메모리에 먼저 생성.
         self.dynamicCall("CommConnect()")  # 시그널 함수 호출.
         self.login_event_loop.exec_()
 
@@ -56,6 +70,7 @@ class Kiwoom(QAxWidget):
             os.system('cls')
             print("1. 현재 로그인 상태 확인")
             print("2. 개인 정보 조회")
+            print("3. 내 계좌 조회")
             print("Q. 프로그램 종료")
             sel = input("=> ")
 
@@ -66,6 +81,8 @@ class Kiwoom(QAxWidget):
                 self.print_login_connect_state()
             elif sel == "2":
                 self.print_my_info()
+            elif sel == "3":
+                self.print_detail_account_info()
 
     def print_login_connect_state(self):
         os.system('cls')
@@ -88,3 +105,41 @@ class Kiwoom(QAxWidget):
         print(f"보유 계좌 수 : {account_count}")
         print(f"1번째 계좌번호 : {self.account_number}\n")
         input()
+
+    def print_detail_account_info(self):
+        os.system('cls')
+        print(f"예수금 : {self.deposit}")
+        print(
+            f"한 종목에 투자할 최대 투자금 : {self.use_money} (최대 {self.use_money_cnt} 종목에 투자 가능.)")
+        print(f"실제 투자 비율 (예수금 대비) : {self.use_money_percent * 100}%")
+        print(f"출금 가능 금액 : {self.withdraw_deposit}")
+        input()
+
+    def get_detail_account_info(self, sPrevNext="0"):
+        self.dynamicCall("SetInputValue(QString, QString)",
+                         "계좌번호", self.account_number)
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
+        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)",
+                         "예수금상세현황요청", "opw00001", sPrevNext, self.screen_my_account)
+
+        self.get_detail_account_loop.exec_()
+
+    def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
+        if sRQName == "예수금상세현황요청":
+            deposit = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "예수금")
+            self.deposit = int(deposit)
+            use_money = float(self.deposit) * self.use_money_percent
+            # 모든 투자 금액을 하나의 종목에 올인할 생각은 없음.
+            self.use_money = use_money / self.use_money_cnt
+
+            withdraw_deposit = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "출금가능금액")
+            self.withdraw_deposit = int(withdraw_deposit)
+
+            self.get_detail_account_loop.exit()
+
+    def cancel_screen_number(self, sScrNo=None):
+        self.dynamicCall("DisconnectRealData(QString)", sScrNo)
