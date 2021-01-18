@@ -106,9 +106,9 @@ class Kiwoom(QAxWidget):
 
     def print_detail_account_info(self):
         os.system('cls')
-        print(f"예수금 : {self.deposit}")
-        print(f"출금 가능 금액 : {self.withdraw_deposit}")
-        print(f"주문 가능 금액 : {self.order_deposit}")
+        print(f"예수금 : {self.deposit}원")
+        print(f"출금 가능 금액 : {self.withdraw_deposit}원")
+        print(f"주문 가능 금액 : {self.order_deposit}원")
         input()
 
     def get_detail_account_info(self, sPrevNext="0"):
