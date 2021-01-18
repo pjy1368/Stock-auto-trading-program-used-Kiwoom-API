@@ -14,10 +14,8 @@ class Kiwoom(QAxWidget):
         # 계좌 관련 변수
         self.account_number = None
         self.deposit = 0
-        self.use_money = 0  # 예수금 중에서 한 종목에 최대로 투자할 금액.
-        self.use_money_cnt = 5  # 최대 몇 종목에 분산 투자 할 것인가?
-        self.use_money_percent = 0.8
         self.withdraw_deposit = 0
+        self.order_deposit = 0
 
         # 화면 번호
         self.screen_my_account = "1000"
@@ -69,8 +67,8 @@ class Kiwoom(QAxWidget):
         while True:
             os.system('cls')
             print("1. 현재 로그인 상태 확인")
-            print("2. 개인 정보 조회")
-            print("3. 내 계좌 조회")
+            print("2. 사용자 정보 조회")
+            print("3. 예수금 조회")
             print("Q. 프로그램 종료")
             sel = input("=> ")
 
@@ -109,10 +107,8 @@ class Kiwoom(QAxWidget):
     def print_detail_account_info(self):
         os.system('cls')
         print(f"예수금 : {self.deposit}")
-        print(
-            f"한 종목에 투자할 최대 투자금 : {self.use_money} (최대 {self.use_money_cnt} 종목에 투자 가능.)")
-        print(f"실제 투자 비율 (예수금 대비) : {self.use_money_percent * 100}%")
         print(f"출금 가능 금액 : {self.withdraw_deposit}")
+        print(f"주문 가능 금액 : {self.order_deposit}")
         input()
 
     def get_detail_account_info(self, sPrevNext="0"):
@@ -131,13 +127,14 @@ class Kiwoom(QAxWidget):
             deposit = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "예수금")
             self.deposit = int(deposit)
-            use_money = float(self.deposit) * self.use_money_percent
-            # 모든 투자 금액을 하나의 종목에 올인할 생각은 없음.
-            self.use_money = use_money / self.use_money_cnt
 
             withdraw_deposit = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "출금가능금액")
             self.withdraw_deposit = int(withdraw_deposit)
+
+            order_deposit = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "주문가능금액")
+            self.order_deposit = int(order_deposit)
 
             self.get_detail_account_loop.exit()
 
