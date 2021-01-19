@@ -114,7 +114,7 @@ class Kiwoom(QAxWidget):
     def get_detail_account_info(self, sPrevNext="0"):
         self.dynamicCall("SetInputValue(QString, QString)",
                          "계좌번호", self.account_number)
-        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", " ")
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
         self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
