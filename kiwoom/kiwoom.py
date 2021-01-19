@@ -111,7 +111,7 @@ class Kiwoom(QAxWidget):
         print(f"주문 가능 금액 : {self.order_deposit}원")
         input()
 
-    def get_detail_account_info(self, sPrevNext="0"):
+    def get_detail_account_info(self, sPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
                          "계좌번호", self.account_number)
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", " ")
