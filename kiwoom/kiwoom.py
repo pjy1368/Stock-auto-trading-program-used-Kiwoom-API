@@ -86,9 +86,9 @@ class Kiwoom(QAxWidget):
         os.system('cls')
         isLogin = self.dynamicCall("GetConnectState()")
         if isLogin == 1:
-            print("\n현재 계정은 로그인 상태입니다.\n")
+            print("\n현재 계정은 로그인 상태입니다.")
         else:
-            print("\n현재 계정은 로그아웃 상태입니다.\n")
+            print("\n현재 계정은 로그아웃 상태입니다.")
         input()
 
     def print_my_info(self):
@@ -101,14 +101,14 @@ class Kiwoom(QAxWidget):
         print(f"\n이름 : {user_name}")
         print(f"ID : {user_id}")
         print(f"보유 계좌 수 : {account_count}")
-        print(f"1번째 계좌번호 : {self.account_number}\n")
+        print(f"1번째 계좌번호 : {self.account_number}")
         input()
 
     def print_detail_account_info(self):
         os.system('cls')
         print(f"\n예수금 : {self.deposit}원")
         print(f"출금 가능 금액 : {self.withdraw_deposit}원")
-        print(f"주문 가능 금액 : {self.order_deposit}원\n")
+        print(f"주문 가능 금액 : {self.order_deposit}원")
         input()
 
     def get_detail_account_info(self, sPrevNext="0"):
