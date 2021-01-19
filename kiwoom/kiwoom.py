@@ -123,6 +123,7 @@ class Kiwoom(QAxWidget):
         self.get_detail_account_loop.exec_()
 
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
+        sPrevNext = str(sPrevNext)
         if sRQName == "예수금상세현황요청":
             deposit = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "예수금")
