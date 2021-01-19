@@ -111,14 +111,14 @@ class Kiwoom(QAxWidget):
         print(f"주문 가능 금액 : {self.order_deposit}원")
         input()
 
-    def get_detail_account_info(self, sPrevNext=0):
+    def get_detail_account_info(self, nPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
                          "계좌번호", self.account_number)
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", " ")
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
         self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
-                         "예수금상세현황요청", "opw00001", sPrevNext, self.screen_my_account)
+                         "예수금상세현황요청", "opw00001", nPrevNext, self.screen_my_account)
 
         self.get_detail_account_loop.exec_()
 
@@ -135,7 +135,7 @@ class Kiwoom(QAxWidget):
             order_deposit = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "주문가능금액")
             self.order_deposit = int(order_deposit)
-
+            
             self.get_detail_account_loop.exit()
 
     def cancel_screen_number(self, sScrNo=None):
