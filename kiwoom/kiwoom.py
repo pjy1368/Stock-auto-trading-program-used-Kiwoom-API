@@ -136,7 +136,7 @@ class Kiwoom(QAxWidget):
             order_deposit = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "주문가능금액")
             self.order_deposit = int(order_deposit)
-            
+            self.cancel_screen_number(self.screen_my_account)
             self.get_detail_account_loop.exit()
 
     def cancel_screen_number(self, sScrNo=None):
