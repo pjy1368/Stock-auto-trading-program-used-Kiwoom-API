@@ -9,7 +9,7 @@ class Kiwoom(QAxWidget):
     def __init__(self):
         super().__init__()
         self.login_event_loop = QEventLoop()  # 로그인 담당 이벤트 루프
-        self.get_detail_account_loop = QEventLoop()  # 상세 계좌 정보 얻어오기 담당 이벤트 루프
+        self.get_deposit_loop = QEventLoop()  # 예수금 담당 이벤트 루프
 
         # 계좌 관련 변수
         self.account_number = None
@@ -26,7 +26,7 @@ class Kiwoom(QAxWidget):
         self.login()
         input()
         self.get_account_info()  # 계좌 번호만 얻어오기
-        self.get_detail_account_info()  # 상세 계좌 정보 얻어오기
+        self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
 
         self.menu()
 
@@ -80,7 +80,7 @@ class Kiwoom(QAxWidget):
             elif sel == "2":
                 self.print_my_info()
             elif sel == "3":
-                self.print_detail_account_info()
+                self.print_get_deposit_info()
 
     def print_login_connect_state(self):
         os.system('cls')
@@ -104,14 +104,14 @@ class Kiwoom(QAxWidget):
         print(f"1번째 계좌번호 : {self.account_number}")
         input()
 
-    def print_detail_account_info(self):
+    def print_get_deposit_info(self):
         os.system('cls')
         print(f"\n예수금 : {self.deposit}원")
         print(f"출금 가능 금액 : {self.withdraw_deposit}원")
         print(f"주문 가능 금액 : {self.order_deposit}원")
         input()
 
-    def get_detail_account_info(self, nPrevNext=0):
+    def get_deposit_info(self, nPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
                          "계좌번호", self.account_number)
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", " ")
@@ -120,24 +120,23 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "예수금상세현황요청", "opw00001", nPrevNext, self.screen_my_account)
 
-        self.get_detail_account_loop.exec_()
+        self.get_deposit_loop.exec_()
 
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
-        sPrevNext = str(sPrevNext)
         if sRQName == "예수금상세현황요청":
             deposit = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "예수금")
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, sPrevNext, "예수금")
             self.deposit = int(deposit)
 
             withdraw_deposit = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "출금가능금액")
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, sPrevNext, "출금가능금액")
             self.withdraw_deposit = int(withdraw_deposit)
 
             order_deposit = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "주문가능금액")
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, sPrevNext, "주문가능금액")
             self.order_deposit = int(order_deposit)
             self.cancel_screen_number(self.screen_my_account)
-            self.get_detail_account_loop.exit()
+            self.get_deposit_loop.exit()
 
-    def cancel_screen_number(self, sScrNo=None):
+    def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
