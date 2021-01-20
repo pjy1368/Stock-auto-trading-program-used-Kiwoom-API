@@ -13,6 +13,8 @@ class Kiwoom(QAxWidget):
 
         # 계좌 관련 변수
         self.account_number = None
+
+        # 예수금 관련 변수
         self.deposit = 0
         self.withdraw_deposit = 0
         self.order_deposit = 0
@@ -125,15 +127,15 @@ class Kiwoom(QAxWidget):
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
         if sRQName == "예수금상세현황요청":
             deposit = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, sPrevNext, "예수금")
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "예수금")
             self.deposit = int(deposit)
 
             withdraw_deposit = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, sPrevNext, "출금가능금액")
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "출금가능금액")
             self.withdraw_deposit = int(withdraw_deposit)
 
             order_deposit = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, sPrevNext, "주문가능금액")
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "주문가능금액")
             self.order_deposit = int(order_deposit)
             self.cancel_screen_number(self.screen_my_account)
             self.get_deposit_loop.exit()
