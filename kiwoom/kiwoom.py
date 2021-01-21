@@ -133,7 +133,7 @@ class Kiwoom(QAxWidget):
         print("<멀티 데이터>")
         print(table)
         input()
-    
+
     def make_table(self):
         table = BeautifulTable()
         table = BeautifulTable(maxwidth=150)
@@ -142,7 +142,7 @@ class Kiwoom(QAxWidget):
             stockList = []
             for key in stock:
                 output = None
-                
+
                 if key == "종목명":
                     output = stock[key]
                 elif key == "수익률(%)":
@@ -178,7 +178,8 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "계좌평가잔고내역요청", "opw00018", nPrevNext, self.screen_my_account)
 
-        self.get_account_evaluation_balance_loop.exec_()
+        if not self.get_account_evaluation_balance_loop.isRunning:
+            self.get_account_evaluation_balance_loop.exec_()
 
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
         if sRQName == "예수금상세현황요청":
