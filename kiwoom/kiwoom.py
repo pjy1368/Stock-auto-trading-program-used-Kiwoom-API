@@ -20,6 +20,7 @@ class Kiwoom(QAxWidget):
         self.total_evaluation_money = 0
         self.total_evaluation_profit_and_loss_money = 0
         self.total_yield = 0
+        self.account_stock_dict = {}
 
         # 예수금 관련 변수
         self.deposit = 0
@@ -183,8 +184,65 @@ class Kiwoom(QAxWidget):
             total_yield = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총수익률(%)")
             self.total_yield = float(total_yield)
-            self.cancel_screen_number(self.screen_my_account)
-            self.get_account_evaluation_balance_loop.exit()
+
+            cnt = self.dynamicCall(
+                "GetRepeatCnt(QString, QString)", sTrCode, sRQName)
+
+            for i in range(cnt):
+                stock_code = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목번호")
+                stock_code = stock_code.strip()[1:]
+
+                stock_name = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목명")
+
+                stock_evaluation_profit_and_loss = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "평가손익")
+                stock_evaluation_profit_and_loss = int(
+                    stock_evaluation_profit_and_loss)
+
+                stock_yield = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "수익률(%)")
+                stock_yield = float(stock_yield)
+
+                stock_buy_money = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "매입가")
+                stock_buy_money = int(stock_buy_money)
+
+                stock_quantity = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "보유수량")
+                stock_quantity = int(stock_quantity)
+
+                stock_trade_quantity = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "매매가능수량")
+                stock_trade_quantity = int(stock_trade_quantity)
+
+                stock_present_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "현재가")
+                stock_present_price = int(stock_present_price)
+
+                if not stock_code in self.account_stock_dict:
+                    self.account_stock_dict[stock_code] = {}
+
+                self.account_stock_dict[stock_code].update({'종목명': stock_name})
+                self.account_stock_dict[stock_code].update(
+                    {'평가손익': stock_evaluation_profit_and_loss})
+                self.account_stock_dict[stock_code].update(
+                    {'수익률(%)': stock_yield})
+                self.account_stock_dict[stock_code].update(
+                    {'매입가': stock_buy_money})
+                self.account_stock_dict[stock_code].update(
+                    {'보유수량': stock_quantity})
+                self.account_stock_dict[stock_code].update(
+                    {'매매가능수량': stock_trade_quantity})
+                self.account_stock_dict[stock_code].update(
+                    {'현재가': stock_present_price})
+
+            if sPrevNext == "2":
+                self.get_account_evaluation_balance("2")
+            else:
+                self.cancel_screen_number(self.screen_my_account)
+                self.get_account_evaluation_balance_loop.exit()
 
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
