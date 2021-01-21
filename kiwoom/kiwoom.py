@@ -3,6 +3,7 @@ import os
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
 from config.errCode import *
+from beautifultable import BeautifulTable
 
 
 class Kiwoom(QAxWidget):
@@ -126,8 +127,36 @@ class Kiwoom(QAxWidget):
         print(f"총 매입 금액 : {self.total_buy_money}원")
         print(f"총 평가 금액 : {self.total_evaluation_money}원")
         print(f"총 평가 손익 금액 : {self.total_evaluation_profit_and_loss_money}원")
-        print(f"총 수익률 : {self.total_yield}%")
+        print(f"총 수익률 : {self.total_yield}%\n")
+
+        table = self.make_table()
+        print("<멀티 데이터>")
+        print(table)
         input()
+    
+    def make_table(self):
+        table = BeautifulTable()
+        table = BeautifulTable(maxwidth=150)
+        for stock_code in self.account_stock_dict:
+            stock = self.account_stock_dict[stock_code]
+            stockList = []
+            for key in stock:
+                output = None
+                
+                if key == "종목명":
+                    output = stock[key]
+                elif key == "수익률(%)":
+                    output = str(stock[key]) + "%"
+                elif key == "보유수량" or key == "매매가능수량":
+                    output = str(stock[key]) + "개"
+                else:
+                    output = str(stock[key]) + "원"
+                stockList.append(output)
+            table.rows.append(stockList)
+        table.columns.header = ["종목명", "평가손익",
+                                "수익률", "매입가", "보유수량", "매매가능수량", "현재가"]
+        table.rows.sort('종목명')
+        return table
 
     def get_deposit_info(self, nPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
