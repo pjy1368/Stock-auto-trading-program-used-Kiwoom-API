@@ -16,7 +16,7 @@ class Kiwoom(QAxWidget):
 
         # 계좌 관련 변수
         self.account_number = None
-        self.total_sell_money = 0
+        self.total_buy_money = 0
         self.total_evaluation_money = 0
         self.total_evaluation_profit_and_loss_money = 0
         self.total_yield = 0
@@ -122,7 +122,7 @@ class Kiwoom(QAxWidget):
     def print_get_account_evaulation_balance_info(self):
         os.system('cls')
         print("\n<싱글 데이터>")
-        print(f"총 매입 금액 : {self.total_sell_money}원")
+        print(f"총 매입 금액 : {self.total_buy_money}원")
         print(f"총 평가 금액 : {self.total_evaluation_money}원")
         print(f"총 평가 손익 금액 : {self.total_evaluation_profit_and_loss_money}원")
         print(f"총 수익률 : {self.total_yield}%")
@@ -167,9 +167,9 @@ class Kiwoom(QAxWidget):
             self.get_deposit_loop.exit()
 
         elif sRQName == "계좌평가잔고내역요청":
-            total_sell_money = self.dynamicCall(
+            total_buy_money = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총매입금액")
-            self.total_sell_money = int(total_sell_money)
+            self.total_buy_money = int(total_buy_money)
 
             total_evaluation_money = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가금액")
