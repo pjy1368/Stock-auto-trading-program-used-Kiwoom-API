@@ -114,7 +114,7 @@ class Kiwoom(QAxWidget):
         print(f"\n이름 : {user_name}")
         print(f"ID : {user_id}")
         print(f"보유 계좌 수 : {account_count}")
-        print(f"1번째 계좌번호 : {self.account_number}")
+        print(f"계좌번호 : {self.account_number}")
         input()
 
     def print_get_deposit_info(self):
@@ -126,11 +126,11 @@ class Kiwoom(QAxWidget):
 
     def print_get_account_evaulation_balance_info(self):
         os.system('cls')
-        print("\n<싱글데이터>")
-        print(f"총매입금액 : {self.total_sell_money}원")
-        print(f"총평가금액 : {self.total_evaluation_money}원")
-        print(f"총평가손익금액 : {self.total_evaluation_profit_and_loss_money}원")
-        print(f"총수익률 : {self.total_yield}%")
+        print("\n<싱글 데이터>")
+        print(f"총 매입 금액 : {self.total_sell_money}원")
+        print(f"총 평가 금액 : {self.total_evaluation_money}원")
+        print(f"총 평가 손익 금액 : {self.total_evaluation_profit_and_loss_money}원")
+        print(f"총 수익률 : {self.total_yield}%")
         input()
 
     def get_deposit_info(self, nPrevNext=0):
