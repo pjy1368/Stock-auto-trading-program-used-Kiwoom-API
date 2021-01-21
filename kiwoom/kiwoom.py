@@ -8,9 +8,11 @@ from config.errCode import *
 class Kiwoom(QAxWidget):
     def __init__(self):
         super().__init__()
-        self.login_event_loop = QEventLoop()  # 로그인 담당 이벤트 루프
-        self.get_deposit_loop = QEventLoop()  # 예수금 담당 이벤트 루프
-        self.get_account_evaluation_balance_loop = QEventLoop()  # 계좌평가잔고내역 담당 이벤트 루프
+
+        # 이벤트 루프 관련 변수
+        self.login_event_loop = QEventLoop()
+        self.get_deposit_loop = QEventLoop()
+        self.get_account_evaluation_balance_loop = QEventLoop()
 
         # 계좌 관련 변수
         self.account_number = None
@@ -147,7 +149,7 @@ class Kiwoom(QAxWidget):
                          "계좌번호", self.account_number)
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", " ")
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
-        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "1")
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "계좌평가잔고내역요청", "opw00018", nPrevNext, self.screen_my_account)
 
