@@ -131,6 +131,7 @@ class Kiwoom(QAxWidget):
 
         table = self.make_table()
         print("<멀티 데이터>")
+        print(f"보유 종목 수 : {len(self.account_stock_dict)}개")
         print(table)
         input()
 
