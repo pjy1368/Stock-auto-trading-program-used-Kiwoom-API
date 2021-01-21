@@ -226,6 +226,7 @@ class Kiwoom(QAxWidget):
 
                 stock_name = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목명")
+                stock_name = stock_name.strip() # 필요 없는 공백 제거.
 
                 stock_evaluation_profit_and_loss = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "평가손익")
