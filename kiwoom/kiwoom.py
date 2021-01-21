@@ -10,9 +10,14 @@ class Kiwoom(QAxWidget):
         super().__init__()
         self.login_event_loop = QEventLoop()  # 로그인 담당 이벤트 루프
         self.get_deposit_loop = QEventLoop()  # 예수금 담당 이벤트 루프
+        self.get_account_evaluation_balance_loop = QEventLoop()  # 계좌평가잔고내역 담당 이벤트 루프
 
         # 계좌 관련 변수
         self.account_number = None
+        self.total_sell_money = 0
+        self.total_evaluation_money = 0
+        self.total_evaluation_profit_and_loss_money = 0
+        self.total_yield = 0
 
         # 예수금 관련 변수
         self.deposit = 0
@@ -29,6 +34,7 @@ class Kiwoom(QAxWidget):
         input()
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
+        self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
 
         self.menu()
 
@@ -71,6 +77,7 @@ class Kiwoom(QAxWidget):
             print("1. 현재 로그인 상태 확인")
             print("2. 사용자 정보 조회")
             print("3. 예수금 조회")
+            print("4. 계좌 잔고 조회")
             print("Q. 프로그램 종료")
             sel = input("=> ")
 
@@ -83,6 +90,8 @@ class Kiwoom(QAxWidget):
                 self.print_my_info()
             elif sel == "3":
                 self.print_get_deposit_info()
+            elif sel == "4":
+                self.print_get_account_evaulation_balance_info()
 
     def print_login_connect_state(self):
         os.system('cls')
@@ -113,6 +122,15 @@ class Kiwoom(QAxWidget):
         print(f"주문 가능 금액 : {self.order_deposit}원")
         input()
 
+    def print_get_account_evaulation_balance_info(self):
+        os.system('cls')
+        print("\n<싱글데이터>")
+        print(f"총매입금액 : {self.total_sell_money}원")
+        print(f"총평가금액 : {self.total_evaluation_money}원")
+        print(f"총평가손익금액 : {self.total_evaluation_profit_and_loss_money}원")
+        print(f"총수익률 : {self.total_yield}%")
+        input()
+
     def get_deposit_info(self, nPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
                          "계좌번호", self.account_number)
@@ -123,6 +141,17 @@ class Kiwoom(QAxWidget):
                          "예수금상세현황요청", "opw00001", nPrevNext, self.screen_my_account)
 
         self.get_deposit_loop.exec_()
+
+    def get_account_evaluation_balance(self, nPrevNext=0):
+        self.dynamicCall("SetInputValue(QString, QString)",
+                         "계좌번호", self.account_number)
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호", " ")
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
+        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)",
+                         "계좌평가잔고내역요청", "opw00018", nPrevNext, self.screen_my_account)
+
+        self.get_account_evaluation_balance_loop.exec_()
 
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
         if sRQName == "예수금상세현황요청":
@@ -139,6 +168,26 @@ class Kiwoom(QAxWidget):
             self.order_deposit = int(order_deposit)
             self.cancel_screen_number(self.screen_my_account)
             self.get_deposit_loop.exit()
+
+        elif sRQName == "계좌평가잔고내역요청":
+            total_sell_money = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총매입금액")
+            self.total_sell_money = int(total_sell_money)
+
+            total_evaluation_money = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가금액")
+            self.total_evaluation_money = int(total_evaluation_money)
+
+            total_evaluation_profit_and_loss_money = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가손익금액")
+            self.total_evaluation_profit_and_loss_money = int(
+                total_evaluation_profit_and_loss_money)
+
+            total_yield = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총수익률(%)")
+            self.total_yield = float(total_yield)
+            self.cancel_screen_number(self.screen_my_account)
+            self.get_account_evaluation_balance_loop.exit()
 
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
