@@ -17,16 +17,16 @@ class Kiwoom(QAxWidget):
 
         # 계좌 관련 변수
         self.account_number = None
-        self.total_buy_money = 0
-        self.total_evaluation_money = 0
-        self.total_evaluation_profit_and_loss_money = 0
-        self.total_yield = 0
+        self.total_buy_money = None
+        self.total_evaluation_money = None
+        self.total_evaluation_profit_and_loss_money = None
+        self.total_yield = None
         self.account_stock_dict = {}
 
         # 예수금 관련 변수
-        self.deposit = 0
-        self.withdraw_deposit = 0
-        self.order_deposit = 0
+        self.deposit = None
+        self.withdraw_deposit = None
+        self.order_deposit = None
 
         # 화면 번호
         self.screen_my_account = "1000"
@@ -199,22 +199,24 @@ class Kiwoom(QAxWidget):
             self.get_deposit_loop.exit()
 
         elif sRQName == "계좌평가잔고내역요청":
-            total_buy_money = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총매입금액")
-            self.total_buy_money = int(total_buy_money)
+            if (self.total_buy_money == None or self.total_evaluation_money == None
+                    or self.total_evaluation_profit_and_loss_money == None or self.total_yield == None):
+                total_buy_money = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총매입금액")
+                self.total_buy_money = int(total_buy_money)
 
-            total_evaluation_money = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가금액")
-            self.total_evaluation_money = int(total_evaluation_money)
+                total_evaluation_money = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가금액")
+                self.total_evaluation_money = int(total_evaluation_money)
 
-            total_evaluation_profit_and_loss_money = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가손익금액")
-            self.total_evaluation_profit_and_loss_money = int(
-                total_evaluation_profit_and_loss_money)
+                total_evaluation_profit_and_loss_money = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총평가손익금액")
+                self.total_evaluation_profit_and_loss_money = int(
+                    total_evaluation_profit_and_loss_money)
 
-            total_yield = self.dynamicCall(
-                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총수익률(%)")
-            self.total_yield = float(total_yield)
+                total_yield = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "총수익률(%)")
+                self.total_yield = float(total_yield)
 
             cnt = self.dynamicCall(
                 "GetRepeatCnt(QString, QString)", sTrCode, sRQName)
@@ -226,7 +228,7 @@ class Kiwoom(QAxWidget):
 
                 stock_name = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목명")
-                stock_name = stock_name.strip() # 필요 없는 공백 제거.
+                stock_name = stock_name.strip()  # 필요 없는 공백 제거.
 
                 stock_evaluation_profit_and_loss = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "평가손익")
