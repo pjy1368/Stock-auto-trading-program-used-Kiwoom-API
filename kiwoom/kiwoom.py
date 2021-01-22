@@ -179,7 +179,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "계좌평가잔고내역요청", "opw00018", nPrevNext, self.screen_my_account)
 
-        if not self.get_account_evaluation_balance_loop.isRunning:
+        if not self.get_account_evaluation_balance_loop.isRunning():
             self.get_account_evaluation_balance_loop.exec_()
 
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
