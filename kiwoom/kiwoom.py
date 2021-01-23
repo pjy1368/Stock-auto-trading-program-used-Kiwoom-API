@@ -41,7 +41,7 @@ class Kiwoom(QAxWidget):
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
-        self.not_signed_account()  # 미체결내역 얻어오기
+        QTimer.singleShot(5000, self.not_signed_account)  # 5초 뒤에 미체결내역 얻어오기
 
         self.menu()
 
@@ -184,7 +184,7 @@ class Kiwoom(QAxWidget):
                     stockList.append(output)
                 table.rows.append(stockList)
             table.columns.header = ["주문번호", "종목명", "주문구분", "주문가격", "주문수량", "미체결수량",
-                                "체결량", "현재가", "주문상태"]
+                                    "체결량", "현재가", "주문상태"]
             table.rows.sort('주문번호')
         return table
 
