@@ -179,6 +179,8 @@ class Kiwoom(QAxWidget):
                         output = str(stock[key]) + "원"
                     elif '량' in key:
                         output = str(stock[key]) + "개"
+                    elif key == "종목코드":
+                        pass
                     else:
                         output = stock[key]
                     stockList.append(output)
