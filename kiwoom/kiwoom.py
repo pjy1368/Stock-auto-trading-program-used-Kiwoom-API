@@ -41,8 +41,7 @@ class Kiwoom(QAxWidget):
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
-        QTimer.singleShot(5000, self.not_signed_account)  # 5초 뒤에 미체결내역 얻어오기
-
+        self.not_signed_account()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -180,7 +179,7 @@ class Kiwoom(QAxWidget):
                     elif '량' in key:
                         output = str(stock[key]) + "개"
                     elif key == "종목코드":
-                        pass
+                        continue
                     else:
                         output = stock[key]
                     stockList.append(output)
@@ -192,6 +191,7 @@ class Kiwoom(QAxWidget):
 
     def print_not_signed_account(self):
         os.system('cls')
+        print()
         table = self.make_table("실시간미체결요청")
         if len(self.not_signed_account_dict) == 0:
             print("미체결 내역이 없습니다!")
@@ -343,7 +343,7 @@ class Kiwoom(QAxWidget):
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문번호")
                 stock_order_number = int(stock_order_number)
 
-                stock_name = stock_order_number = self.dynamicCall(
+                stock_name = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목명")
                 stock_name = stock_name.strip()
 
@@ -369,7 +369,7 @@ class Kiwoom(QAxWidget):
 
                 stock_present_price = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "현재가")
-                stock_present_price = int(stock_present_price)
+                stock_present_price = int(stock_present_price.strip().lstrip('+').lstrip('-'))
 
                 stock_order_status = self.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문상태")
