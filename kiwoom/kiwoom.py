@@ -30,6 +30,9 @@ class Kiwoom(QAxWidget):
         self.withdraw_deposit = None
         self.order_deposit = None
 
+        # 종목 분석 관련 변수
+        self.calculator_list = []
+
         # 화면 번호
         self.screen_my_account = "1000"
         self.screen_calculation_stock = "2000"
@@ -44,7 +47,6 @@ class Kiwoom(QAxWidget):
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
         self.calculator()
-        input()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -410,8 +412,41 @@ class Kiwoom(QAxWidget):
         elif sRQName == "주식일봉차트조회요청":
             stock_code = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "종목코드")
-            six_hundred_data = self.dynamicCall(
-                "GetCommDataEx(QString, QString)", sTrCode, sRQName)
+            #six_hundred_data = self.dynamicCall("GetCommDataEx(QString, QString)", sTrCode, sRQName)
+
+            stock_code = stock_code.strip()
+            cnt = self.dynamicCall(
+                "GetRepeatCnt(QString, QString)", sTrCode, sRQName)  # 최대 600일
+
+            for i in range(cnt):
+                calculator_list = []
+
+                current_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "현재가")
+                volume = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "거래량")
+                trade_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "거래대금")
+                date = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "일자")
+                start_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "시가")
+                high_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "고가")
+                low_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "저가")
+
+                calculator_list.append("")
+                calculator_list.append(int(current_price))
+                calculator_list.append(int(volume))
+                calculator_list.append(int(trade_price))
+                calculator_list.append(date.strip())
+                calculator_list.append(int(start_price))
+                calculator_list.append(int(high_price))
+                calculator_list.append(int(low_price))
+                calculator_list.append("")
+
+                self.calculator_list.append(calculator_list.copy())
 
             if sPrevNext == "2":
                 self.day_kiwoom_db(stock_code, sPrevNext)
