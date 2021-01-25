@@ -404,6 +404,7 @@ class Kiwoom(QAxWidget):
             else:
                 self.cancel_screen_number(sScrNo)
                 self.account_event_loop.event_exit()
+
         elif sRQName == "주식일봉차트조회요청":
             stock_code = self.dynamicCall(
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "종목코드")
