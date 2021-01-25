@@ -4,6 +4,7 @@ from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
 from config.errCode import *
 from beautifultable import BeautifulTable
+from PyQt5.QtTest import *
 
 
 class Kiwoom(QAxWidget):
@@ -403,6 +404,14 @@ class Kiwoom(QAxWidget):
             else:
                 self.cancel_screen_number(sScrNo)
                 self.account_event_loop.event_exit()
+        elif sRQName == "주식일봉차트조회요청":
+            stock_code = self.dynamicCall("GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "종목코드")
+            six_hundred_data = self.dynamicCall("GetCommDataEx(QString, QString)", sTrCode, sRQName)
+
+            if sPrevNext == "2":
+                self.day_kiwoom_db(stock_code, sPrevNext)
+            else:
+                self.calculator_event_loop.exit()
 
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
@@ -415,3 +424,26 @@ class Kiwoom(QAxWidget):
 
     def calculator(self):
         code_list = self.get_code_list_by_market("10")
+
+        for idx, code in enumerate(code_list):
+            self.dynamicCall("DisconnectRealData(QString)",
+                             self.screen_calculation_stock)
+
+            print(
+                f"{idx + 1} / {len(code_list)} : KOSDAQ Stock Code : {code} is updating...")
+            self.day_kiwoom_db(code=code)
+
+    def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0):
+        QTest.qwait(3600)  # 3.6초마다 딜레이
+
+        self.dynamicCall("SetInputValue(QString, QString)", "종목코드", stock_code)
+        self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", 1)
+
+        if date != None: # date가 None일 경우 date는 오늘 날짜 기준
+            self.dynamicCall("SetInputValue(QString, QString)", "기준일자", date)
+
+        self.dynamicCall("CommRqData(QString, QString, int, QString)",
+                         "주식일봉차트조회요청", "opt10081", nPrevNext, self.screen_calculation_stock)
+
+        if not self.calculator_event_loop.isRunning():
+            self.calculator_event_loop.exec_()
