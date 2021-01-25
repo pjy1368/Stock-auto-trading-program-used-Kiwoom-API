@@ -13,6 +13,7 @@ class Kiwoom(QAxWidget):
         # 이벤트 루프 관련 변수
         self.login_event_loop = QEventLoop()
         self.account_loop = QEventLoop()
+        self.calculator_event_loop = QEventLoop()
 
         # 계좌 관련 변수
         self.account_number = None
@@ -30,6 +31,7 @@ class Kiwoom(QAxWidget):
 
         # 화면 번호
         self.screen_my_account = "1000"
+        self.screen_calculation_stock = "2000"
 
         # 초기 작업
         self.create_kiwoom_instance()
@@ -206,7 +208,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "예수금상세현황요청", "opw00001", nPrevNext, self.screen_my_account)
 
-        self.account_loop.exec_()
+        self.account_loop.eevent_xec_()
 
     def get_account_evaluation_balance(self, nPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
@@ -218,7 +220,7 @@ class Kiwoom(QAxWidget):
                          "계좌평가잔고내역요청", "opw00018", nPrevNext, self.screen_my_account)
 
         if not self.account_loop.isRunning():
-            self.account_loop.exec_()
+            self.account_event_event_loop.eevent_xec_()
 
     def not_signed_account(self, nPrevNext=0):
         self.dynamicCall("SetInputValue(QString, QString)",
@@ -230,7 +232,7 @@ class Kiwoom(QAxWidget):
                          "실시간미체결요청", "opt10075", nPrevNext, self.screen_my_account)
 
         if not self.account_loop.isRunning():
-            self.account_loop.exec_()
+            self.account_event_event_loop.eevent_xec_()
 
     def tr_slot(self, sScrNo, sRQName, sTrCode, sRecordName, sPrevNext):
         if sRQName == "예수금상세현황요청":
@@ -246,7 +248,7 @@ class Kiwoom(QAxWidget):
                 "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "주문가능금액")
             self.order_deposit = int(order_deposit)
             self.cancel_screen_number(self.screen_my_account)
-            self.account_loop.exit()
+            self.account_loop.event_exit()
 
         elif sRQName == "계좌평가잔고내역요청":
             if (self.total_buy_money == None or self.total_evaluation_money == None
@@ -326,7 +328,7 @@ class Kiwoom(QAxWidget):
                 self.get_account_evaluation_balance(2)
             else:
                 self.cancel_screen_number(self.screen_my_account)
-                self.account_loop.exit()
+                self.account_loop.event_exit()
 
         elif sRQName == "실시간미체결요청":
             cnt = self.dynamicCall(
@@ -400,7 +402,16 @@ class Kiwoom(QAxWidget):
                 self.not_signed_account(2)
             else:
                 self.cancel_screen_number(sScrNo)
-                self.account_loop.exit()
+                self.account_loop.event_exit()
 
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
+
+    def get_code_list_by_market(self, market_code):
+        code_list = self.dynamicCall(
+            "GetCodeListByMarket(QString)", market_code)
+        code_list = code_list.split(";")[:-1]
+        return code_list
+
+    def calculator(self):
+        code_list = self.get_code_list_by_market("10")
