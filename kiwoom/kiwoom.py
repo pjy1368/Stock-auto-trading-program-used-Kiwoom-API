@@ -39,7 +39,7 @@ class Kiwoom(QAxWidget):
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
-        self.not_signed_account()
+        self.not_signed_account() # 미체결내역 얻어오기
         self.menu()
 
     # COM 오브젝트 생성.
