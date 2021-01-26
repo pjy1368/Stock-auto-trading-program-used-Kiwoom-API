@@ -46,7 +46,7 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        # self.calculator()
+        self.calculator()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -505,7 +505,7 @@ class Kiwoom(QAxWidget):
                         "GetMasterCodeName(QString", stock_code)
                     f = open("files/condition_stock.txt", "a", encoding="UTF8")
                     f.write(
-                        f"{stock_code}\t{stock_name}\t{str(self.calculator_list[0][1])}")
+                        f"{stock_code}\t{stock_name}\t{str(self.calculator_list[0][1])}\n")
                     f.close()
 
                 self.calculator_list.clear()
@@ -524,6 +524,8 @@ class Kiwoom(QAxWidget):
         kosdaq_list = self.get_code_list_by_market("10")
 
         for idx, stock_code in enumerate(kosdaq_list):
+            if idx == 100:
+                break
             self.dynamicCall("DisconnectRealData(QString)",
                              self.screen_calculation_stock)
 
