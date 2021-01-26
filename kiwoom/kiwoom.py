@@ -46,7 +46,7 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        #self.calculator()
+        # self.calculator()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -440,7 +440,7 @@ class Kiwoom(QAxWidget):
                 calculator_list.append(int(current_price))
                 calculator_list.append(int(volume))
                 calculator_list.append(int(trade_price))
-                calculator_list.append(int(date.strip))
+                calculator_list.append(int(date))
                 calculator_list.append(int(start_price))
                 calculator_list.append(int(high_price))
                 calculator_list.append(int(low_price))
@@ -451,6 +451,64 @@ class Kiwoom(QAxWidget):
             if sPrevNext == "2":
                 self.day_kiwoom_db(stock_code, None, 2)
             else:
+                pass_condition = False
+
+                if self.calculator_list == None or len(self.calculator_list) < 120:
+                    pass
+                else:
+                    # 120일 이동 평균선의 가격을 구함.
+                    total_price = 0
+                    for value in self.calculator_list[:120]:
+                        total_price += int(value[1])
+                    moving_average_price = total_price / 120
+
+                    # 오늘의 주가가 120일 이동 평균선에 걸쳐 있는가?
+                    is_stock_price_bottom = False
+                    today_price = None
+                    if int(self.calculator_list[0][7]) <= moving_average_price and\
+                            int(self.calculator_list[0][6]) >= moving_average_price:
+                        is_stock_price_bottom = True
+                        today_price = int(self.calculator_list[0][6])
+
+                    # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
+                    # 주가가 아래에 위치하는지 확인.
+                    prev_price = None
+                    if is_stock_price_bottom:
+                        moving_average_price_prev = 0
+                        is_stock_price_prev_top = False
+                        idx = 1
+
+                        while True:
+                            if len(self.calculator_list[idx:]) < 120:
+                                break
+
+                            total_price = 0
+                            for value in self.calculator_list[idx:idx+120]:
+                                total_price += int(value[1])
+                            moving_average_price_prev = total_price / 120
+
+                            if moving_average_price_prev <= int(self.calculator_list[idx][6]) and idx <= 20:
+                                break
+
+                            if int(self.calculator_list[idx][7] > moving_average_price_prev and idx > 20):
+                                is_stock_price_prev_top = True
+                                prev_price = int(self.calculator_list[idx][7])
+                                break
+                            idx += 1
+
+                        if is_stock_price_prev_top:
+                            if moving_average_price > moving_average_price_prev and today_price > prev_price:
+                                pass_condition = True
+
+                if pass_condition:
+                    stock_name = self.dynamicCall(
+                        "GetMasterCodeName(QString", stock_code)
+                    f = open("files/condition_stock.txt", "a", encoding="UTF8")
+                    f.write(
+                        f"{stock_code}\t{stock_name}\t{str(self.calculator_list[0][1])}")
+                    f.close()
+
+                self.calculator_list.clear()
                 self.calculator_event_loop.exit()
 
     def cancel_screen_number(self, sScrNo):
