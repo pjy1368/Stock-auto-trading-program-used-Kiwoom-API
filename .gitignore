@@ -2,3 +2,5 @@ _pycache_
 .pylintrc
 *.pyc
 .vscode
+db
+files
