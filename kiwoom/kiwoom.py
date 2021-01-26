@@ -524,8 +524,6 @@ class Kiwoom(QAxWidget):
         kosdaq_list = self.get_code_list_by_market("10")
 
         for idx, stock_code in enumerate(kosdaq_list):
-            if idx == 100:
-                break
             self.dynamicCall("DisconnectRealData(QString)",
                              self.screen_calculation_stock)
 
