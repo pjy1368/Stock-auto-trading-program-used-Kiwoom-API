@@ -46,7 +46,7 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        self.calculator()
+        #self.calculator()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -449,7 +449,7 @@ class Kiwoom(QAxWidget):
                 self.calculator_list.append(calculator_list.copy())
 
             if sPrevNext == "2":
-                self.day_kiwoom_db(stock_code, sPrevNext)
+                self.day_kiwoom_db(stock_code, None, 2)
             else:
                 self.calculator_event_loop.exit()
 
