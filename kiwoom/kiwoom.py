@@ -440,7 +440,7 @@ class Kiwoom(QAxWidget):
                 calculator_list.append(int(current_price))
                 calculator_list.append(int(volume))
                 calculator_list.append(int(trade_price))
-                calculator_list.append(date.strip())
+                calculator_list.append(int(date.strip))
                 calculator_list.append(int(start_price))
                 calculator_list.append(int(high_price))
                 calculator_list.append(int(low_price))
