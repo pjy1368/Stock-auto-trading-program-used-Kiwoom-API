@@ -478,9 +478,9 @@ class Kiwoom(QAxWidget):
         for stock_code in kosdaq_list:
             stock_name = self.dynamicCall(
                 "GetMasterCodeName(QString)", stock_code)
-            if not stock_code in self.kosdaq_dict:
-                self.kosdaq_dict[stock_code] = {}
-            self.kosdaq_dict[stock_code].update({stock_code: stock_name})
+            if not stock_name in self.kosdaq_dict:
+                self.kosdaq_dict[stock_name] = {}
+            self.kosdaq_dict[stock_name].update({stock_code: stock_code})
 
         if not isHaveDayDate:
             for idx, stock_code in enumerate(self.kosdaq_list):
@@ -584,7 +584,7 @@ class Kiwoom(QAxWidget):
 
                     if int(calculator_list[idx][7] > moving_average_price_prev and idx > 20):
                         is_stock_price_prev_top = True
-                        prev_price = int(self.calculator_list[idx][7])
+                        prev_price = int(calculator_list[idx][7])
                         break
                     idx += 1
 
@@ -599,3 +599,4 @@ class Kiwoom(QAxWidget):
             f.write(
                 f"{stock_code}\t{stock_name}\t{str(calculator_list[0][1])}\n")
             f.close()
+
