@@ -487,7 +487,7 @@ class Kiwoom(QAxWidget):
                                  self.screen_calculation_stock)
 
                 print(
-                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {stock_name} is updating...")
+                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {self.kosdaq_dict[stock_name]} is updating...")
                 self.day_kiwoom_db(self.kosdaq_dict[stock_name], '20210127')
 
     def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0):
