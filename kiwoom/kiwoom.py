@@ -470,7 +470,7 @@ class Kiwoom(QAxWidget):
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
 
-    def get_stock_list_by_kosdaq(self, isHaveDayDate=False):
+    def get_stock_list_by_kosdaq(self, isHaveDayData=False):
         kosdaq_list = self.dynamicCall(
             "GetCodeListByMarket(QString)", "10")
         kosdaq_list = kosdaq_list.split(";")[:-1]
@@ -481,7 +481,7 @@ class Kiwoom(QAxWidget):
             if not stock_name in self.kosdaq_dict:
                 self.kosdaq_dict[stock_name] = stock_code
 
-        if not isHaveDayDate:
+        if not isHaveDayData:
             for idx, stock_name in enumerate(self.kosdaq_dict):
                 self.dynamicCall("DisconnectRealData(QString)",
                                  self.screen_calculation_stock)
@@ -600,4 +600,3 @@ class Kiwoom(QAxWidget):
             f.write(
                 f"{stock_code}\t{stock_name}\t{str(calculator_list[0][1])}\n")
             f.close()
-
