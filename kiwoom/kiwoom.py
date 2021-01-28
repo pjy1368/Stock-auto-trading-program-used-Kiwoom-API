@@ -53,8 +53,8 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        self.get_stock_list_by_kosdaq(True)
-        self.granvile_theory()
+        self.get_stock_list_by_kosdaq(False)
+        #self.granvile_theory()
         ######### 초기 작업 종료
 
         self.menu()
@@ -479,17 +479,16 @@ class Kiwoom(QAxWidget):
             stock_name = self.dynamicCall(
                 "GetMasterCodeName(QString)", stock_code)
             if not stock_name in self.kosdaq_dict:
-                self.kosdaq_dict[stock_name] = {}
-            self.kosdaq_dict[stock_name].update({stock_code: stock_code})
+                self.kosdaq_dict[stock_name] = stock_code
 
         if not isHaveDayDate:
-            for idx, stock_code in enumerate(self.kosdaq_list):
+            for idx, stock_name in enumerate(self.kosdaq_dict):
                 self.dynamicCall("DisconnectRealData(QString)",
                                  self.screen_calculation_stock)
 
                 print(
-                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {stock_code} is updating...")
-                self.day_kiwoom_db(stock_code, '20210127')
+                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {stock_name} is updating...")
+                self.day_kiwoom_db(self.kosdaq_dict[stock_name], '20210127')
 
     def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0):
         QTest.qWait(3600)  # 3.6초마다 딜레이
@@ -508,6 +507,7 @@ class Kiwoom(QAxWidget):
 
     def save_day_kiwoom_db(self, stock_code=None):
         stock_name = self.dynamicCall("GetMasterCodeName(QString)", stock_code)
+        table_name = "\"" + stock_name + "\""
 
         query = "SELECT name FROM sqlite_master WHERE type='table'"
         self.cursor.execute(query)
@@ -518,13 +518,13 @@ class Kiwoom(QAxWidget):
 
         query = "CREATE TABLE IF NOT EXISTS {} \
             (current_price integer, volume integer, trade_price integer, \
-                date integer PRIMARY KEY, start_price integer, high_price integer, low_price integer)".format(stock_name)
+                date integer PRIMARY KEY, start_price integer, high_price integer, low_price integer)".format(table_name)
         self.cursor.execute(query)
 
         for item in self.calculator_list:
             calculator_tuple = tuple(item[1:-1])
             query = "INSERT INTO {} (current_price, volume, trade_price, date, \
-                start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(stock_name)
+                start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(table_name)
             self.cursor.executemany(query, (calculator_tuple,))
 
     def granvile_theory(self):
