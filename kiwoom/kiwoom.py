@@ -54,7 +54,7 @@ class Kiwoom(QAxWidget):
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
         self.get_stock_list_by_kosdaq(False)
-        #self.granvile_theory()
+        # self.granvile_theory()
         ######### 초기 작업 종료
 
         self.menu()
@@ -525,14 +525,15 @@ class Kiwoom(QAxWidget):
             calculator_tuple = tuple(item[1:-1])
             query = "INSERT INTO {} (current_price, volume, trade_price, date, \
                 start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(table_name)
-            self.cursor.executemany(query, (calculator_tuple,))
+            self.cursor.execute(query, calculator_tuple)
 
     def granvile_theory(self):
         query = "SELECT name FROM sqlite_master WHERE type='table'"
         self.cursor.execute(query)
 
         for row in self.cursor.fetchall():
-            query = "SELECT * from {}".format(row[0])
+            table_name = "\"" + row[0] + "\""
+            query = "SELECT * from {}".format(table_name)
             self.cursor.execute(query)
             calculator_list = []
             for item in self.cursor.fetchall():
