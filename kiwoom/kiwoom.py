@@ -32,6 +32,7 @@ class Kiwoom(QAxWidget):
         self.order_deposit = None
 
         # 종목 분석 관련 변수
+        self.kosdaq_list = []
         self.calculator_list = []
 
         # 화면 번호
@@ -52,7 +53,8 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        self.calculator()
+        self.get_stock_list_by_kosdaq(True)
+        self.granvile_theory()
         input()
         self.menu()
 
@@ -460,62 +462,6 @@ class Kiwoom(QAxWidget):
             if sPrevNext == "2":
                 self.day_kiwoom_db(stock_code, None, 2)
             else:
-                # pass_condition = False
-
-                # if self.calculator_list == None or len(self.calculator_list) < 120:
-                #     pass
-                # else:
-                #     # 120일 이동 평균선의 가격을 구함.
-                #     total_price = 0
-                #     for value in self.calculator_list[:120]:
-                #         total_price += int(value[1])
-                #     moving_average_price = total_price / 120
-
-                #     # 오늘의 주가가 120일 이동 평균선에 걸쳐 있는가?
-                #     is_stock_price_bottom = False
-                #     today_price = None
-                #     if int(self.calculator_list[0][7]) <= moving_average_price and\
-                #             int(self.calculator_list[0][6]) >= moving_average_price:
-                #         is_stock_price_bottom = True
-                #         today_price = int(self.calculator_list[0][6])
-
-                #     # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
-                #     # 주가가 아래에 위치하는지 확인.
-                #     prev_price = None
-                #     if is_stock_price_bottom:
-                #         moving_average_price_prev = 0
-                #         is_stock_price_prev_top = False
-                #         idx = 1
-
-                #         while True:
-                #             if len(self.calculator_list[idx:]) < 120:
-                #                 break
-
-                #             total_price = 0
-                #             for value in self.calculator_list[idx:idx+120]:
-                #                 total_price += int(value[1])
-                #             moving_average_price_prev = total_price / 120
-
-                #             if moving_average_price_prev <= int(self.calculator_list[idx][6]) and idx <= 20:
-                #                 break
-
-                #             if int(self.calculator_list[idx][7] > moving_average_price_prev and idx > 20):
-                #                 is_stock_price_prev_top = True
-                #                 prev_price = int(self.calculator_list[idx][7])
-                #                 break
-                #             idx += 1
-
-                #         if is_stock_price_prev_top:
-                #             if moving_average_price > moving_average_price_prev and today_price > prev_price:
-                #                 pass_condition = True
-
-                # if pass_condition:
-                #     stock_name = self.dynamicCall(
-                #         "GetMasterCodeName(QString", stock_code)
-                #     f = open("files/condition_stock.txt", "a", encoding="UTF8")
-                #     f.write(
-                #         f"{stock_code}\t{stock_name}\t{str(self.calculator_list[0][1])}\n")
-                #     f.close()
                 self.save_day_kiwoom_db(stock_code)
                 self.calculator_list.clear()
                 self.calculator_event_loop.exit()
@@ -523,24 +469,21 @@ class Kiwoom(QAxWidget):
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
 
-    def get_code_list_by_market(self, market_code):
-        code_list = self.dynamicCall(
-            "GetCodeListByMarket(QString)", market_code)
-        code_list = code_list.split(";")[:-1]
-        return code_list
+    def get_stock_list_by_kosdaq(self, isHaveDayDate=False):
+        self.kosdaq_list = self.dynamicCall(
+            "GetCodeListByMarket(QString)", "10")
+        self.kosdaq_list = self.kosdaq_list.split(";")[:-1]
 
-    def calculator(self):
-        kosdaq_list = self.get_code_list_by_market("10")
+        if not isHaveDayDate:
+            for idx, stock_code in enumerate(self.kosdaq_list):
+                if idx == 10:
+                    break
+                self.dynamicCall("DisconnectRealData(QString)",
+                                 self.screen_calculation_stock)
 
-        for idx, stock_code in enumerate(kosdaq_list):
-            if idx == 10:
-                break
-            self.dynamicCall("DisconnectRealData(QString)",
-                             self.screen_calculation_stock)
-
-            print(
-                f"{idx + 1} / {len(kosdaq_list)} : KOSDAQ Stock Code : {stock_code} is updating...")
-            self.day_kiwoom_db(stock_code)
+                print(
+                    f"{idx + 1} / {len(self.kosdaq_list)} : KOSDAQ Stock Code : {stock_code} is updating...")
+                self.day_kiwoom_db(stock_code)
 
     def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0):
         QTest.qWait(3600)  # 3.6초마다 딜레이
@@ -578,7 +521,75 @@ class Kiwoom(QAxWidget):
                 start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(stock_name)
             self.cursor.executemany(query, (calculator_tuple,))
 
-        # query = "SELECT * FROM {}".format(stock_name)
-        # self.cursor.execute(query)
-        # for row in self.cursor.fetchall():
-        #     print(row)
+    def granvile_theory(self):
+        query = "SELECT name FROM sqlite_master WHERE type='table'"
+        self.cursor.execute(query)
+
+        for (idx, row) in enumerate(self.cursor.fetchall()):
+            query = "SELECT * from {}".format(row[0])
+            self.cursor.execute(query)
+            calculator_list = []
+            for item in self.cursor.fetchall():
+                itemList = list(item)
+                itemList.insert(0, '')
+                itemList.insert(len(itemList), '')
+                calculator_list.append(itemList)
+            self.calculator(calculator_list, self.kosdaq_list[idx])
+
+    def calculator(self, calculator_list=None, stock_code=None):
+        pass_condition = False
+
+        if calculator_list == None or len(calculator_list) < 120:
+            pass
+        else:
+            # 120일 이동 평균선의 가격을 구함.
+            total_price = 0
+            for value in calculator_list[:120]:
+                total_price += int(value[1])
+            moving_average_price = total_price / 120
+
+            # 오늘의 주가가 120일 이동 평균선에 걸쳐 있는가?
+            is_stock_price_bottom = False
+            today_price = None
+            if int(calculator_list[0][7]) <= moving_average_price and\
+                    int(calculator_list[0][6]) >= moving_average_price:
+                is_stock_price_bottom = True
+                today_price = int(calculator_list[0][6])
+
+            # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
+            # 주가가 아래에 위치하는지 확인.
+            prev_price = None
+            if is_stock_price_bottom:
+                moving_average_price_prev = 0
+                is_stock_price_prev_top = False
+                idx = 1
+
+                while True:
+                    if len(calculator_list[idx:]) < 120:
+                        break
+
+                    total_price = 0
+                    for value in calculator_list[idx:idx+120]:
+                        total_price += int(value[1])
+                    moving_average_price_prev = total_price / 120
+
+                    if moving_average_price_prev <= int(calculator_list[idx][6]) and idx <= 20:
+                        break
+
+                    if int(calculator_list[idx][7] > moving_average_price_prev and idx > 20):
+                        is_stock_price_prev_top = True
+                        prev_price = int(self.calculator_list[idx][7])
+                        break
+                    idx += 1
+
+                if is_stock_price_prev_top:
+                    if moving_average_price > moving_average_price_prev and today_price > prev_price:
+                        pass_condition = True
+
+        if pass_condition:
+            stock_name = self.dynamicCall(
+                "GetMasterCodeName(QString", stock_code)
+            f = open("files/condition_stock.txt", "a", encoding="UTF8")
+            f.write(
+                f"{stock_code}\t{stock_name}\t{str(calculator_list[0][1])}\n")
+            f.close()
