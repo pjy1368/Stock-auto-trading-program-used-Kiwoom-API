@@ -5,6 +5,7 @@ from PyQt5.QtCore import *
 from config.errCode import *
 from beautifultable import BeautifulTable
 from PyQt5.QtTest import *
+import sqlite3
 
 
 class Kiwoom(QAxWidget):
@@ -42,11 +43,17 @@ class Kiwoom(QAxWidget):
         self.event_collection()  # 이벤트와 슬롯을 메모리에 먼저 생성.
         self.login()
         input()
+
+        # DB 연결
+        self.conn = sqlite3.connect("db/day_stock.db", isolation_level=None)
+        self.cursor = self.conn.cursor()
+
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
         self.calculator()
+        input()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -68,6 +75,7 @@ class Kiwoom(QAxWidget):
         else:
             os.system('cls')
             print("에러 내용 :", errors(err_code)[1])
+            self.conn.close()
             sys.exit(0)
         self.login_event_loop.exit()
 
@@ -89,6 +97,7 @@ class Kiwoom(QAxWidget):
             sel = input("=> ")
 
             if sel == "Q" or sel == "q":
+                self.conn.close()
                 sys.exit(0)
 
             if sel == "1":
@@ -451,63 +460,63 @@ class Kiwoom(QAxWidget):
             if sPrevNext == "2":
                 self.day_kiwoom_db(stock_code, None, 2)
             else:
-                pass_condition = False
+                # pass_condition = False
 
-                if self.calculator_list == None or len(self.calculator_list) < 120:
-                    pass
-                else:
-                    # 120일 이동 평균선의 가격을 구함.
-                    total_price = 0
-                    for value in self.calculator_list[:120]:
-                        total_price += int(value[1])
-                    moving_average_price = total_price / 120
+                # if self.calculator_list == None or len(self.calculator_list) < 120:
+                #     pass
+                # else:
+                #     # 120일 이동 평균선의 가격을 구함.
+                #     total_price = 0
+                #     for value in self.calculator_list[:120]:
+                #         total_price += int(value[1])
+                #     moving_average_price = total_price / 120
 
-                    # 오늘의 주가가 120일 이동 평균선에 걸쳐 있는가?
-                    is_stock_price_bottom = False
-                    today_price = None
-                    if int(self.calculator_list[0][7]) <= moving_average_price and\
-                            int(self.calculator_list[0][6]) >= moving_average_price:
-                        is_stock_price_bottom = True
-                        today_price = int(self.calculator_list[0][6])
+                #     # 오늘의 주가가 120일 이동 평균선에 걸쳐 있는가?
+                #     is_stock_price_bottom = False
+                #     today_price = None
+                #     if int(self.calculator_list[0][7]) <= moving_average_price and\
+                #             int(self.calculator_list[0][6]) >= moving_average_price:
+                #         is_stock_price_bottom = True
+                #         today_price = int(self.calculator_list[0][6])
 
-                    # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
-                    # 주가가 아래에 위치하는지 확인.
-                    prev_price = None
-                    if is_stock_price_bottom:
-                        moving_average_price_prev = 0
-                        is_stock_price_prev_top = False
-                        idx = 1
+                #     # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
+                #     # 주가가 아래에 위치하는지 확인.
+                #     prev_price = None
+                #     if is_stock_price_bottom:
+                #         moving_average_price_prev = 0
+                #         is_stock_price_prev_top = False
+                #         idx = 1
 
-                        while True:
-                            if len(self.calculator_list[idx:]) < 120:
-                                break
+                #         while True:
+                #             if len(self.calculator_list[idx:]) < 120:
+                #                 break
 
-                            total_price = 0
-                            for value in self.calculator_list[idx:idx+120]:
-                                total_price += int(value[1])
-                            moving_average_price_prev = total_price / 120
+                #             total_price = 0
+                #             for value in self.calculator_list[idx:idx+120]:
+                #                 total_price += int(value[1])
+                #             moving_average_price_prev = total_price / 120
 
-                            if moving_average_price_prev <= int(self.calculator_list[idx][6]) and idx <= 20:
-                                break
+                #             if moving_average_price_prev <= int(self.calculator_list[idx][6]) and idx <= 20:
+                #                 break
 
-                            if int(self.calculator_list[idx][7] > moving_average_price_prev and idx > 20):
-                                is_stock_price_prev_top = True
-                                prev_price = int(self.calculator_list[idx][7])
-                                break
-                            idx += 1
+                #             if int(self.calculator_list[idx][7] > moving_average_price_prev and idx > 20):
+                #                 is_stock_price_prev_top = True
+                #                 prev_price = int(self.calculator_list[idx][7])
+                #                 break
+                #             idx += 1
 
-                        if is_stock_price_prev_top:
-                            if moving_average_price > moving_average_price_prev and today_price > prev_price:
-                                pass_condition = True
+                #         if is_stock_price_prev_top:
+                #             if moving_average_price > moving_average_price_prev and today_price > prev_price:
+                #                 pass_condition = True
 
-                if pass_condition:
-                    stock_name = self.dynamicCall(
-                        "GetMasterCodeName(QString", stock_code)
-                    f = open("files/condition_stock.txt", "a", encoding="UTF8")
-                    f.write(
-                        f"{stock_code}\t{stock_name}\t{str(self.calculator_list[0][1])}\n")
-                    f.close()
-
+                # if pass_condition:
+                #     stock_name = self.dynamicCall(
+                #         "GetMasterCodeName(QString", stock_code)
+                #     f = open("files/condition_stock.txt", "a", encoding="UTF8")
+                #     f.write(
+                #         f"{stock_code}\t{stock_name}\t{str(self.calculator_list[0][1])}\n")
+                #     f.close()
+                self.save_day_kiwoom_db(stock_code)
                 self.calculator_list.clear()
                 self.calculator_event_loop.exit()
 
@@ -524,6 +533,8 @@ class Kiwoom(QAxWidget):
         kosdaq_list = self.get_code_list_by_market("10")
 
         for idx, stock_code in enumerate(kosdaq_list):
+            if idx == 10:
+                break
             self.dynamicCall("DisconnectRealData(QString)",
                              self.screen_calculation_stock)
 
@@ -545,3 +556,29 @@ class Kiwoom(QAxWidget):
 
         if not self.calculator_event_loop.isRunning():
             self.calculator_event_loop.exec_()
+
+    def save_day_kiwoom_db(self, stock_code=None):
+        stock_name = self.dynamicCall("GetMasterCodeName(QString)", stock_code)
+
+        query = "SELECT name FROM sqlite_master WHERE type='table'"
+        self.cursor.execute(query)
+
+        for row in self.cursor.fetchall():
+            if row[0] == stock_name:
+                return
+
+        query = "CREATE TABLE IF NOT EXISTS {} \
+            (current_price integer, volume integer, trade_price integer, \
+                date integer PRIMARY KEY, start_price integer, high_price integer, low_price integer)".format(stock_name)
+        self.cursor.execute(query)
+
+        for item in self.calculator_list:
+            calculator_tuple = tuple(item[1:-1])
+            query = "INSERT INTO {} (current_price, volume, trade_price, date, \
+                start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(stock_name)
+            self.cursor.executemany(query, (calculator_tuple,))
+
+        # query = "SELECT * FROM {}".format(stock_name)
+        # self.cursor.execute(query)
+        # for row in self.cursor.fetchall():
+        #     print(row)
