@@ -32,7 +32,7 @@ class Kiwoom(QAxWidget):
         self.order_deposit = None
 
         # 종목 분석 관련 변수
-        self.kosdaq_list = []
+        self.kosdaq_dict = {}
         self.calculator_list = []
 
         # 화면 번호
@@ -55,7 +55,6 @@ class Kiwoom(QAxWidget):
         self.not_signed_account()  # 미체결내역 얻어오기
         self.get_stock_list_by_kosdaq(True)
         self.granvile_theory()
-        input()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -470,20 +469,25 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
 
     def get_stock_list_by_kosdaq(self, isHaveDayDate=False):
-        self.kosdaq_list = self.dynamicCall(
+        kosdaq_list = self.dynamicCall(
             "GetCodeListByMarket(QString)", "10")
-        self.kosdaq_list = self.kosdaq_list.split(";")[:-1]
+        kosdaq_list = kosdaq_list.split(";")[:-1]
+
+        for stock_code in kosdaq_list:
+            stock_name = self.dynamicCall(
+                "GetMasterCodeName(QString)", stock_code)
+            if not stock_code in self.kosdaq_dict:
+                self.kosdaq_dict[stock_code] = {}
+            self.kosdaq_dict[stock_code].update({stock_code: stock_name})
 
         if not isHaveDayDate:
             for idx, stock_code in enumerate(self.kosdaq_list):
-                if idx == 10:
-                    break
                 self.dynamicCall("DisconnectRealData(QString)",
                                  self.screen_calculation_stock)
 
                 print(
-                    f"{idx + 1} / {len(self.kosdaq_list)} : KOSDAQ Stock Code : {stock_code} is updating...")
-                self.day_kiwoom_db(stock_code)
+                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {stock_code} is updating...")
+                self.day_kiwoom_db(stock_code, '20210127')
 
     def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0):
         QTest.qWait(3600)  # 3.6초마다 딜레이
@@ -525,7 +529,7 @@ class Kiwoom(QAxWidget):
         query = "SELECT name FROM sqlite_master WHERE type='table'"
         self.cursor.execute(query)
 
-        for (idx, row) in enumerate(self.cursor.fetchall()):
+        for row in self.cursor.fetchall():
             query = "SELECT * from {}".format(row[0])
             self.cursor.execute(query)
             calculator_list = []
@@ -534,7 +538,7 @@ class Kiwoom(QAxWidget):
                 itemList.insert(0, '')
                 itemList.insert(len(itemList), '')
                 calculator_list.append(itemList)
-            self.calculator(calculator_list, self.kosdaq_list[idx])
+            self.calculator(calculator_list, self.kosdaq_dict[row[0]])
 
     def calculator(self, calculator_list=None, stock_code=None):
         pass_condition = False
