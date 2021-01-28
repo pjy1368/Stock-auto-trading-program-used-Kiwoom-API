@@ -539,7 +539,8 @@ class Kiwoom(QAxWidget):
                 itemList = list(item)
                 itemList.insert(0, '')
                 itemList.insert(len(itemList), '')
-                calculator_list.insert(len(calculator_list), itemList) # 최신 날짜가 앞으로 오도록 설정.
+                calculator_list.append(itemList)
+            calculator_list.reverse()
             self.calculator(calculator_list, self.kosdaq_dict[row[0]])
 
     def calculator(self, calculator_list=None, stock_code=None):
