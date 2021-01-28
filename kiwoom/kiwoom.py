@@ -39,7 +39,7 @@ class Kiwoom(QAxWidget):
         self.screen_my_account = "1000"
         self.screen_calculation_stock = "2000"
 
-        # 초기 작업
+        ########## 초기 작업 시작
         self.create_kiwoom_instance()
         self.event_collection()  # 이벤트와 슬롯을 메모리에 먼저 생성.
         self.login()
@@ -55,6 +55,8 @@ class Kiwoom(QAxWidget):
         self.not_signed_account()  # 미체결내역 얻어오기
         self.get_stock_list_by_kosdaq(True)
         self.granvile_theory()
+        ######### 초기 작업 종료
+
         self.menu()
 
     # COM 오브젝트 생성.
