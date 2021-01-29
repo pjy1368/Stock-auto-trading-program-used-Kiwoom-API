@@ -42,6 +42,8 @@ class Kiwoom(QAxWidget):
         # 화면 번호
         self.screen_my_account = "1000"
         self.screen_calculation_stock = "2000"
+        self.screen_real_stock = "3000"  # 종목별 할당할 화면 번호
+        self.screen_order_stock = "4000"  # 종목별 할당할 주문용 화변 번호
 
         ########## 초기 작업 시작
         self.create_kiwoom_instance()
@@ -60,7 +62,8 @@ class Kiwoom(QAxWidget):
         self.get_stock_list_by_kosdaq(True)  # False : DB 구축 x, True : DB 구축 o
         # self.update_day_kiwoom_db() # DB 업데이트
         # self.granvile_theory()  # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음
-        self.read_file() # 포트폴리오 읽어오기
+        self.read_file()  # 포트폴리오 읽어오기
+        self.screen_number_setting() # 종목별 화면 번호 세팅
         ######### 초기 작업 종료
         self.menu()
 
@@ -695,3 +698,46 @@ class Kiwoom(QAxWidget):
                     self.portfolio_stock_dict.update(
                         {stock_code: {"종목명": stock_name, "현재가": stock_price}})
             f.close()
+
+    def screen_number_setting(self):
+        screen_overwrite = []
+
+        for stock_code in self.account_stock_dict:
+            if stock_code not in screen_overwrite:
+                screen_overwrite.append(stock_code)
+
+        for order_number in self.not_signed_account_dict:
+            stcoK_code = self.not_signed_account_dict[order_number]['종목코드']
+
+            if stock_code not in screen_overwrite:
+                screen_overwrite.append(stock_code)
+
+        for stock_code in self.portfolio_stock_dict:
+            if stock_code not in screen_overwrite:
+                screen_overwrite.append(stock_code)
+
+        # 화면 번호 할당.
+        cnt = 1
+        for stock_code in screen_overwrite:
+            real_stock_screen = int(self.screen_real_stock)
+            order_stock_screen = int(self.screen_order_stock)
+
+            if (cnt % 50) == 0:
+                real_stock_screen += 1
+                self.screen_real_stock = str(real_stock_screen)
+
+            if (cnt % 50) == 0:
+                order_stock_screen += 1
+                self.screen_order_stock = str(order_stock_screen)
+
+            if stock_code in self.portfolio_stock_dict:
+                self.portfolio_stock_dict[stock_code].update(
+                    {"화면번호": str(self.screen_real_stock)})
+                self.portfolio_stock_dict[stock_code].update(
+                    {"주문용화면번호": str(self.screen_order_stock)})
+            else:
+                self.portfolio_stock_dict.update({stock_code: {"화면번호": str(
+                    self.screen_real_stock), "주문용화면번호": str(self.screen_order_stock)}})
+
+            cnt += 1
+        print(self.portfolio_stock_dict)
