@@ -54,9 +54,9 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        self.get_stock_list_by_kosdaq(True)
-        self.update_day_kiwoom_db()
-        # self.granvile_theory()
+        self.get_stock_list_by_kosdaq(True) # False : DB 구축 x, True : DB 구축 o
+        self.update_day_kiwoom_db() # DB 업데이트
+        # self.granvile_theory() # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음.
         ######### 초기 작업 종료
         self.menu()
 
@@ -539,7 +539,7 @@ class Kiwoom(QAxWidget):
                         break
 
                 if is_date_in_db:
-                    continue
+                    return
 
                 query = "INSERT INTO {} (current_price, volume, trade_price, date, \
                 start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(table_name)
