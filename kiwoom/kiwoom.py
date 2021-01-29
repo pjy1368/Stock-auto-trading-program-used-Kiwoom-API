@@ -6,6 +6,7 @@ from config.errCode import *
 from beautifultable import BeautifulTable
 from PyQt5.QtTest import *
 import sqlite3
+from datetime import date
 
 
 class Kiwoom(QAxWidget):
@@ -54,9 +55,9 @@ class Kiwoom(QAxWidget):
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
         self.get_stock_list_by_kosdaq(True)
-        self.granvile_theory()
+        self.update_day_kiwoom_db()
+        # self.granvile_theory()
         ######### 초기 작업 종료
-        input()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -467,6 +468,18 @@ class Kiwoom(QAxWidget):
                 self.calculator_list.clear()
                 self.calculator_event_loop.exit()
 
+        elif sRQName == "주식일봉차트업데이트요청":
+            stock_code = self.dynamicCall(
+                "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, 0, "종목코드")
+            six_hundred_data = self.dynamicCall(
+                "GetCommDataEx(QString, QString)", sTrCode, sRQName)
+
+            stock_code = stock_code.strip()
+            self.calculator_list = six_hundred_data.copy()
+            self.save_day_kiwoom_db(stock_code, True)
+            self.calculator_list.clear()
+            self.calculator_event_loop.exit()
+
     def cancel_screen_number(self, sScrNo):
         self.dynamicCall("DisconnectRealData(QString)", sScrNo)
 
@@ -483,16 +496,14 @@ class Kiwoom(QAxWidget):
 
         if not isHaveDayData:
             for idx, stock_name in enumerate(self.kosdaq_dict):
-                if idx < 845:
-                    continue
                 self.dynamicCall("DisconnectRealData(QString)",
                                  self.screen_calculation_stock)
 
                 print(
                     f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {self.kosdaq_dict[stock_name]} is updating...")
-                self.day_kiwoom_db(self.kosdaq_dict[stock_name], '20210127')
+                self.day_kiwoom_db(self.kosdaq_dict[stock_name])
 
-    def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0):
+    def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0, isUpdate=False):
         QTest.qWait(3600)  # 3.6초마다 딜레이
 
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", stock_code)
@@ -501,33 +512,90 @@ class Kiwoom(QAxWidget):
         if date != None:  # date가 None일 경우 date는 오늘 날짜 기준
             self.dynamicCall("SetInputValue(QString, QString)", "기준일자", date)
 
-        self.dynamicCall("CommRqData(QString, QString, int, QString)",
-                         "주식일봉차트조회요청", "opt10081", nPrevNext, self.screen_calculation_stock)
+        if isUpdate:
+            self.dynamicCall("CommRqData(QString, QString, int, QString)",
+                             "주식일봉차트업데이트요청", "opt10081", nPrevNext, self.screen_calculation_stock)
+        else:
+            self.dynamicCall("CommRqData(QString, QString, int, QString)",
+                             "주식일봉차트조회요청", "opt10081", nPrevNext, self.screen_calculation_stock)
 
         if not self.calculator_event_loop.isRunning():
             self.calculator_event_loop.exec_()
 
-    def save_day_kiwoom_db(self, stock_code=None):
+    def save_day_kiwoom_db(self, stock_code=None, isUpdate=False):
         stock_name = self.dynamicCall("GetMasterCodeName(QString)", stock_code)
         table_name = "\"" + stock_name + "\""
 
-        query = "SELECT name FROM sqlite_master WHERE type='table'"
-        self.cursor.execute(query)
+        if isUpdate:
+            for item in self.calculator_list:
+                calculator_tuple = tuple(item[1:8])
+                query = "SELECT * from {}".format(table_name)
+                self.cursor.execute(query)
 
-        for row in self.cursor.fetchall():
-            if row[0] == stock_name:
+                is_date_in_db = False
+                for row in self.cursor.fetchall():
+                    if int(calculator_tuple[3]) == row[3]:
+                        is_date_in_db = True
+                        break
+
+                if is_date_in_db:
+                    continue
+
+                query = "INSERT INTO {} (current_price, volume, trade_price, date, \
+                start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(table_name)
+                self.cursor.execute(query, calculator_tuple)
+        else:
+            query = "SELECT name FROM sqlite_master WHERE type='table'"
+            self.cursor.execute(query)
+
+            for row in self.cursor.fetchall():
+                if row[0] == stock_name:
+                    return
+
+            query = "CREATE TABLE IF NOT EXISTS {} \
+                (current_price integer, volume integer, trade_price integer, \
+                    date integer PRIMARY KEY, start_price integer, high_price integer, low_price integer)".format(table_name)
+            self.cursor.execute(query)
+
+            for item in self.calculator_list:
+                calculator_tuple = tuple(item[1:-1])
+                query = "INSERT INTO {} (current_price, volume, trade_price, date, \
+                    start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(table_name)
+                self.cursor.execute(query, calculator_tuple)
+
+    def update_day_kiwoom_db(self):
+        # 코스닥 종목 중 db에 없는 종목은 새롭게 일봉 데이터를 추가. (오늘 날짜부터)
+        for stock_name in self.kosdaq_dict:
+            is_stock_name_in_db = False
+            query = "SELECT name FROM sqlite_master WHERE type='table'"
+            self.cursor.execute(query)
+            for row in self.cursor.fetchall():
+                if stock_name == row[0]:
+                    is_stock_name_in_db = True
+                    break
+            if not is_stock_name_in_db:
+                self.day_kiwoom_db(self.kosdaq_dict[stock_name])
                 return
 
-        query = "CREATE TABLE IF NOT EXISTS {} \
-            (current_price integer, volume integer, trade_price integer, \
-                date integer PRIMARY KEY, start_price integer, high_price integer, low_price integer)".format(table_name)
+        # 튜플 내에서 가장 최근 날짜를 찾고, 오늘 날짜와 다르다면
+        # 오늘 날짜부터 (가장 최근 날짜 + 1)까지 새롭게 일봉 데이터를 추가.
+        today = int(date.today().isoformat().replace('-', ''))
+        query = "SELECT name FROM sqlite_master WHERE type='table'"
         self.cursor.execute(query)
+        for (idx, row) in enumerate(self.cursor.fetchall()):
+            table_name = "\"" + row[0] + "\""
+            query = "SELECT * from {}".format(table_name)
+            self.cursor.execute(query)
+            data_list = self.cursor.fetchall()
+            prev = data_list[len(data_list) - 1][3]
 
-        for item in self.calculator_list:
-            calculator_tuple = tuple(item[1:-1])
-            query = "INSERT INTO {} (current_price, volume, trade_price, date, \
-                start_price, high_price, low_price) VALUES(?, ?, ?, ?, ?, ?, ?)".format(table_name)
-            self.cursor.execute(query, calculator_tuple)
+            if (prev < today):
+                print(
+                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {self.kosdaq_dict[row[0]]} is updating...")
+                self.day_kiwoom_db(self.kosdaq_dict[row[0]], None, 0, True)
+            else:
+                print(
+                    f"{idx + 1} / {len(self.kosdaq_dict)} : KOSDAQ Stock Code : {self.kosdaq_dict[row[0]]} is already updated!")
 
     def granvile_theory(self):
         query = "SELECT name FROM sqlite_master WHERE type='table'"
