@@ -53,10 +53,10 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        self.get_stock_list_by_kosdaq(False)
-        # self.granvile_theory()
+        self.get_stock_list_by_kosdaq(True)
+        self.granvile_theory()
         ######### 초기 작업 종료
-
+        input()
         self.menu()
 
     # COM 오브젝트 생성.
@@ -483,6 +483,8 @@ class Kiwoom(QAxWidget):
 
         if not isHaveDayData:
             for idx, stock_name in enumerate(self.kosdaq_dict):
+                if idx < 845:
+                    continue
                 self.dynamicCall("DisconnectRealData(QString)",
                                  self.screen_calculation_stock)
 
@@ -564,7 +566,7 @@ class Kiwoom(QAxWidget):
                 is_stock_price_bottom = True
                 today_price = int(calculator_list[0][6])
 
-            # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
+            # 과거 10일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
             # 주가가 아래에 위치하는지 확인.
             prev_price = None
             if is_stock_price_bottom:
@@ -581,10 +583,10 @@ class Kiwoom(QAxWidget):
                         total_price += int(value[1])
                     moving_average_price_prev = total_price / 120
 
-                    if moving_average_price_prev <= int(calculator_list[idx][6]) and idx <= 20:
+                    if moving_average_price_prev <= int(calculator_list[idx][6]) and idx <= 10:
                         break
 
-                    if int(calculator_list[idx][7] > moving_average_price_prev and idx > 20):
+                    if int(calculator_list[idx][7] > moving_average_price_prev and idx > 10):
                         is_stock_price_prev_top = True
                         prev_price = int(calculator_list[idx][7])
                         break
