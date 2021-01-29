@@ -36,6 +36,9 @@ class Kiwoom(QAxWidget):
         self.kosdaq_dict = {}
         self.calculator_list = []
 
+        # 종목 정보 가져오기 관련 변수
+        self.portfolio_stock_dict = {}
+
         # 화면 번호
         self.screen_my_account = "1000"
         self.screen_calculation_stock = "2000"
@@ -54,9 +57,10 @@ class Kiwoom(QAxWidget):
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
-        self.get_stock_list_by_kosdaq(True) # False : DB 구축 x, True : DB 구축 o
+        self.get_stock_list_by_kosdaq(True)  # False : DB 구축 x, True : DB 구축 o
         # self.update_day_kiwoom_db() # DB 업데이트
-        self.granvile_theory() # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음.
+        # self.granvile_theory()  # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음
+        self.read_file() # 포트폴리오 읽어오기
         ######### 초기 작업 종료
         self.menu()
 
@@ -672,4 +676,22 @@ class Kiwoom(QAxWidget):
             f = open("files/condition_stock.txt", "a", encoding="UTF8")
             f.write(
                 f"{stock_code}\t{stock_name}\t{str(calculator_list[0][1])}\n")
+            f.close()
+
+    def read_file(self):
+        if os.path.exists("files/condition_stock.txt"):
+            f = open("files/condition_stock.txt", "r", encoding="UTF8")
+
+            lines = f.readlines()
+            for line in lines:
+                if line != "":
+                    data = line.split("\t")
+
+                    stock_code = data[0]
+                    stock_name = data[1]
+                    stock_price = int(data[2].split("\n")[0])
+                    stock_price = abs(stock_price)
+
+                    self.portfolio_stock_dict.update(
+                        {stock_code: {"종목명": stock_name, "현재가": stock_price}})
             f.close()
