@@ -640,7 +640,7 @@ class Kiwoom(QAxWidget):
                 is_stock_price_bottom = True
                 today_price = int(calculator_list[0][6])
 
-            # 과거 10일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
+            # 과거 20일 간의 일봉 데이터를 조회하면서 120일 이동 평균선보다
             # 주가가 아래에 위치하는지 확인.
             prev_price = None
             if is_stock_price_bottom:
