@@ -55,8 +55,8 @@ class Kiwoom(QAxWidget):
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
         self.get_stock_list_by_kosdaq(True) # False : DB 구축 x, True : DB 구축 o
-        self.update_day_kiwoom_db() # DB 업데이트
-        # self.granvile_theory() # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음.
+        # self.update_day_kiwoom_db() # DB 업데이트
+        self.granvile_theory() # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음.
         ######### 초기 작업 종료
         self.menu()
 
@@ -587,6 +587,8 @@ class Kiwoom(QAxWidget):
             query = "SELECT * from {}".format(table_name)
             self.cursor.execute(query)
             data_list = self.cursor.fetchall()
+            if len(data_list) == 0:
+                continue
             prev = data_list[len(data_list) - 1][3]
 
             if (prev < today):
@@ -651,10 +653,10 @@ class Kiwoom(QAxWidget):
                         total_price += int(value[1])
                     moving_average_price_prev = total_price / 120
 
-                    if moving_average_price_prev <= int(calculator_list[idx][6]) and idx <= 10:
+                    if moving_average_price_prev <= int(calculator_list[idx][6]) and idx <= 20:
                         break
 
-                    if int(calculator_list[idx][7] > moving_average_price_prev and idx > 10):
+                    if int(calculator_list[idx][7] > moving_average_price_prev and idx > 20):
                         is_stock_price_prev_top = True
                         prev_price = int(calculator_list[idx][7])
                         break
