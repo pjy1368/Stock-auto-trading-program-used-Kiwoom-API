@@ -63,7 +63,7 @@ class Kiwoom(QAxWidget):
         # self.update_day_kiwoom_db() # DB 업데이트
         # self.granvile_theory()  # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음
         self.read_file()  # 포트폴리오 읽어오기
-        self.screen_number_setting() # 종목별 화면 번호 세팅
+        self.screen_number_setting()  # 종목별 화면 번호 세팅
         ######### 초기 작업 종료
         self.menu()
 
