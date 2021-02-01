@@ -12,6 +12,9 @@ from datetime import date
 class Kiwoom(QAxWidget):
     def __init__(self):
         super().__init__()
+        # DB 연결
+        self.conn = sqlite3.connect("db/day_stock.db", isolation_level=None)
+        self.cursor = self.conn.cursor()
 
         # 이벤트 루프 관련 변수
         self.login_event_loop = QEventLoop()
@@ -50,12 +53,6 @@ class Kiwoom(QAxWidget):
         self.event_collection()  # 이벤트와 슬롯을 메모리에 먼저 생성.
         self.login()
         input()
-
-        # DB 연결
-        self.conn = sqlite3.connect("db/day_stock.db", isolation_level=None)
-        self.cursor = self.conn.cursor()
-        query = "DROP TABLE 데일리블록체인"
-        self.cursor.execute(query)
 
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
