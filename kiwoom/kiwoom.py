@@ -570,6 +570,20 @@ class Kiwoom(QAxWidget):
                 self.cursor.execute(query, calculator_tuple)
 
     def update_day_kiwoom_db(self):
+        # 종목의 상호명이 바뀐 경우 기존의 있던 테이블을 제거.
+        query = "SELECT name FROM sqlite_master WHERE type='table'"
+        self.cursor.execute(query)
+        for row in self.cursor.fetchall():
+            is_stock_name_in_dict = False
+            table_name = "\"" + row + "\""
+            for stock in self.kosdaq_dict:
+                if row[0] == stock:
+                    is_stock_name_in_dict = True
+                    break
+            if not is_stock_name_in_dict:
+                query = "DROP TABLE {}".format(table_name)
+                self.cursor.execute(query)
+
         # 코스닥 종목 중 db에 없는 종목은 새롭게 일봉 데이터를 추가. (오늘 날짜부터)
         for stock_name in self.kosdaq_dict:
             is_stock_name_in_db = False
