@@ -54,16 +54,18 @@ class Kiwoom(QAxWidget):
         # DB 연결
         self.conn = sqlite3.connect("db/day_stock.db", isolation_level=None)
         self.cursor = self.conn.cursor()
+        query = "DROP TABLE 데일리블록체인"
+        self.cursor.execute(query)
 
         self.get_account_info()  # 계좌 번호만 얻어오기
         self.get_deposit_info()  # 예수금 관련된 정보 얻어오기
         self.get_account_evaluation_balance()  # 계좌평가잔고내역 얻어오기
         self.not_signed_account()  # 미체결내역 얻어오기
         self.get_stock_list_by_kosdaq(True)  # False : DB 구축 x, True : DB 구축 o
-        # self.update_day_kiwoom_db() # DB 업데이트
-        # self.granvile_theory()  # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음
-        self.read_file()  # 포트폴리오 읽어오기
-        self.screen_number_setting()  # 종목별 화면 번호 세팅
+        self.update_day_kiwoom_db() # DB 업데이트
+        self.granvile_theory()  # DB 구축 상태일 때만 유망한 종목을 뽑을 수 있음
+        # self.read_file()  # 포트폴리오 읽어오기
+        # self.screen_number_setting()  # 종목별 화면 번호 세팅
         ######### 초기 작업 종료
         self.menu()
 
@@ -511,7 +513,7 @@ class Kiwoom(QAxWidget):
                 self.day_kiwoom_db(self.kosdaq_dict[stock_name])
 
     def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0, isUpdate=False):
-        QTest.qWait(3600)  # 3.6초마다 딜레이
+        QTest.qWait(3000)  # 3.6초마다 딜레이
 
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", stock_code)
         self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", 1)
