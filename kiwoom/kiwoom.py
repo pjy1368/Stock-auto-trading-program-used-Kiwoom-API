@@ -510,7 +510,7 @@ class Kiwoom(QAxWidget):
                 self.day_kiwoom_db(self.kosdaq_dict[stock_name])
 
     def day_kiwoom_db(self, stock_code=None, date=None, nPrevNext=0, isUpdate=False):
-        QTest.qWait(3000)  # 3.0초마다 딜레이
+        QTest.qWait(3600)  # 3.6초마다 딜레이
 
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", stock_code)
         self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", 1)
