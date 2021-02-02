@@ -583,6 +583,7 @@ class Kiwoom(QAxWidget):
             if not is_stock_name_in_dict:
                 query = "DROP TABLE {}".format(table_name)
                 self.cursor.execute(query)
+                print(f"{self.kosdaq_dict[row[0]]} 테이블 제거")
 
         # 코스닥 종목 중 db에 없는 종목은 새롭게 일봉 데이터를 추가. (오늘 날짜부터)
         for stock_name in self.kosdaq_dict:
@@ -595,6 +596,7 @@ class Kiwoom(QAxWidget):
                     break
             if not is_stock_name_in_db:
                 self.day_kiwoom_db(self.kosdaq_dict[stock_name])
+                print(f"{self.kosdaq_dict[row[0]]} 테이블 추가")
                 return
 
         # 튜플 내에서 가장 최근 날짜를 찾고, 오늘 날짜와 다르다면
