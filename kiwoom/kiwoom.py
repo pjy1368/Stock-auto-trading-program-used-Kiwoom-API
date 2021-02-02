@@ -575,7 +575,7 @@ class Kiwoom(QAxWidget):
         self.cursor.execute(query)
         for row in self.cursor.fetchall():
             is_stock_name_in_dict = False
-            table_name = "\"" + row + "\""
+            table_name = "\"" + row[0] + "\""
             for stock in self.kosdaq_dict:
                 if row[0] == stock:
                     is_stock_name_in_dict = True
